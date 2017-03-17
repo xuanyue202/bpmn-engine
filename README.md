@@ -6,29 +6,31 @@ bpmn-engine
 [![Build Status](https://travis-ci.org/paed01/bpmn-engine.svg?branch=master)](https://travis-ci.org/paed01/bpmn-engine)[![Build status](https://ci.appveyor.com/api/projects/status/670n39fivq1g3nu5/branch/master?svg=true)](https://ci.appveyor.com/project/paed01/bpmn-engine/branch/master)[![Coverage Status](https://coveralls.io/repos/github/paed01/bpmn-engine/badge.svg?branch=master)](https://coveralls.io/github/paed01/bpmn-engine?branch=master)
 
 ## Introduction
-**bpmn-engine** is an serverside BPMN 2.0 process engine.
-
-A workflow engine built with javascript.
+**bpmn-engine** is an open-source serverside workflow engine built with javascript. Then engine executes automated processes modeled according to the standard Business Process Model and Notation - BPMN 2.0.
 
 ## Table of Contents
 - [Supported elements](#supported-elements)
 - [Process modeller](#process-modeller)
 - [Debug](#debug)
 - [Acknowledgments](#acknowledgments)
-- [API](#api)
 - [Changelog](/Changelog.md)
+
+### Documentation
+- [API](/API.md)
+- [Examples](/docs/Examples.md)
 
 # Supported elements
 
 The following elements are tested and supported.
 
+- [Definition](/docs/Definition.md)
 - Process
 - Lane
 - Flows:
   - Sequence: javascript- and expression conditions
   - Message
 - Events
-  - Start
+  - [Start](/docs/StartEvent.md)
   - End
   - Error
     - Boundary
@@ -53,6 +55,7 @@ The following elements are tested and supported.
   - Exclusive
   - Inclusive
   - Parallel: join and fork
+- [Form](/docs/Form.md)
 
 # Process modeller
 
@@ -67,7 +70,3 @@ The module uses [debug](github.com/visionmedia/debug) so run with environment va
 # Acknowledgments
 
 The **bpmn-engine** resides upon the excellent library [bpmn-io/bpmn-moddle](https://github.com/bpmn-io/bpmn-moddle) developed by [bpmn.io](http://bpmn.io/)
-
-# API
-
-See the [API Reference](API.md)

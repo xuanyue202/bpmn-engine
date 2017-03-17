@@ -31,9 +31,9 @@ lab.experiment('TimerEvent', () => {
       const engine = new Bpmn.Engine({
         source: processXml
       });
-      engine.getInstance((err, instance) => {
+      engine.getDefinition((err, definition) => {
         if (err) return done(err);
-        expect(instance.getChildActivityById('timeoutEvent').duration).to.equal('PT0.1S');
+        expect(definition.getChildActivityById('timeoutEvent').duration).to.equal('PT0.1S');
         done();
       });
 
@@ -117,16 +117,15 @@ lab.experiment('TimerEvent', () => {
   });
 
   lab.describe('as BoundaryEvent', () => {
-    let event, instance;
+    let event;
     lab.before((done) => {
       const processXml = factory.resource('boundary-timeout.bpmn');
       const engine = new Bpmn.Engine({
         source: processXml
       });
-      engine.getInstance((err, processInstance) => {
+      engine.getDefinition((err, definition) => {
         if (err) return done(err);
-        instance = processInstance;
-        event = instance.getChildActivityById('boundTimeoutEvent');
+        event = definition.getChildActivityById('boundTimeoutEvent');
         done();
       });
     });
@@ -171,11 +170,11 @@ lab.experiment('TimerEvent', () => {
 
         engine.execute({
           listener: listener
-        }, (err, inst) => {
+        }, (err, definition) => {
           if (err) return done(err);
 
-          inst.once('end', () => {
-            testHelper.expectNoLingeringListeners(inst);
+          definition.once('end', () => {
+            testHelper.expectNoLingeringListenersOnDefinition(definition);
             done();
           });
         });
@@ -195,11 +194,11 @@ lab.experiment('TimerEvent', () => {
 
         engine.execute({
           listener: listener
-        }, (err, inst) => {
+        }, (err, definition) => {
           if (err) return done(err);
 
-          inst.once('end', () => {
-            testHelper.expectNoLingeringListeners(inst);
+          definition.once('end', () => {
+            testHelper.expectNoLingeringListenersOnDefinition(definition);
             done();
           });
         });
@@ -216,11 +215,11 @@ lab.experiment('TimerEvent', () => {
 
         engine.execute({
           listener: listener
-        }, (err, inst) => {
+        }, (err, definition) => {
           if (err) return done(err);
 
-          inst.once('end', () => {
-            testHelper.expectNoLingeringListeners(inst);
+          definition.once('end', () => {
+            testHelper.expectNoLingeringListenersOnDefinition(definition);
             done();
           });
         });
@@ -249,12 +248,12 @@ lab.experiment('TimerEvent', () => {
 
         engine.execute({
           listener: listener
-        }, (err, inst) => {
+        }, (err, definition) => {
           if (err) return done(err);
 
-          inst.once('end', () => {
+          definition.once('end', () => {
             expect(calledEnds).to.include(['userTask', 'boundaryEvent']);
-            testHelper.expectNoLingeringListeners(inst);
+            testHelper.expectNoLingeringListenersOnDefinition(definition);
             done();
           });
         });
@@ -281,11 +280,11 @@ lab.experiment('TimerEvent', () => {
 
         engine.execute({
           listener: listener
-        }, (err, inst) => {
+        }, (err, definition) => {
           if (err) return done(err);
-          inst.once('end', () => {
+          definition.once('end', () => {
             expect(calledEnds).to.include(['userTask']);
-            testHelper.expectNoLingeringListeners(inst);
+            testHelper.expectNoLingeringListenersOnDefinition(definition);
             done();
           });
         });
@@ -305,11 +304,11 @@ lab.experiment('TimerEvent', () => {
 
         engine.execute({
           listener: listener
-        }, (err, inst) => {
+        }, (err, definition) => {
           if (err) return done(err);
 
-          inst.once('end', () => {
-            testHelper.expectNoLingeringListeners(inst);
+          definition.once('end', () => {
+            testHelper.expectNoLingeringListenersOnDefinition(definition);
             done();
           });
         });
@@ -324,7 +323,7 @@ lab.experiment('TimerEvent', () => {
       const engine = new Bpmn.Engine({
         source: processXml
       });
-      engine.getInstance((err, processInstance) => {
+      engine.getDefinition((err, processInstance) => {
         if (err) return done(err);
         instance = processInstance;
         event = instance.getChildActivityById('duration');
@@ -360,19 +359,19 @@ lab.experiment('TimerEvent', () => {
 
       engine.execute({
         listener: listener
-      }, (err, inst) => {
+      }, (err, definition) => {
         if (err) return done(err);
 
-        inst.once('end', () => {
+        definition.once('end', () => {
           expect(calledEnds).to.include(['task1', 'duration', 'task2']);
-          testHelper.expectNoLingeringListeners(inst);
+          testHelper.expectNoLingeringListenersOnDefinition(definition);
           done();
         });
       });
     });
   });
 
-  lab.describe('#getState', () => {
+  lab.describe('getState()', () => {
     lab.test('returns remaining timeout and attachedTo', (done) => {
       const processXml = `
   <?xml version="1.0" encoding="UTF-8"?>
@@ -406,7 +405,7 @@ lab.experiment('TimerEvent', () => {
       });
 
       engine.once('end', () => {
-        const state = engine.processes[0].getChildActivityById('timeoutEvent').getState();
+        const state = engine.definitions[0].getChildActivityById('timeoutEvent').getState();
         expect(state.timeout).to.be.below(100);
         expect(state.attachedToId).to.equal('dontWaitForMe');
         done();
@@ -414,7 +413,7 @@ lab.experiment('TimerEvent', () => {
     });
   });
 
-  lab.describe('#resume', () => {
+  lab.describe('resume()', () => {
     lab.test('resumes if not entered yet', (done) => {
       const processXml = `
   <?xml version="1.0" encoding="UTF-8"?>
@@ -448,12 +447,7 @@ lab.experiment('TimerEvent', () => {
         listener2.once('wait-takeMeFirst', (task) => {
           task.signal('Continue');
         });
-
-        const engine2 = new Bpmn.Engine({
-          source: state.source,
-          name: 'resumeMe'
-        });
-        engine2.resume(state, {
+        Bpmn.Engine.resume(state, {
           listener: listener2
         }, (err, resumedInstance) => {
           if (err) return done(err);

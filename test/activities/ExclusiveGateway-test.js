@@ -25,9 +25,9 @@ lab.experiment('ExclusiveGateway', () => {
     const engine = new Bpmn.Engine({
       source: processXml
     });
-    engine.execute((err, execution) => {
+    engine.execute((err, definition) => {
       if (err) return done(err);
-      const activity = execution.getChildActivityById('decision');
+      const activity = definition.getChildActivityById('decision');
       expect(activity).to.include('inbound');
       expect(activity.inbound).to.have.length(1);
       expect(activity).to.include('outbound');
@@ -59,62 +59,6 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         done();
       });
     });
-  });
-
-  lab.test('should not support a single diverging flow with a condition', (done) => {
-
-    const processXml = `
-<?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <process id="theProcess" isExecutable="true">
-    <startEvent id="theStart" />
-    <exclusiveGateway id="decision" />
-    <endEvent id="end" />
-    <sequenceFlow id="flow1" sourceRef="theStart" targetRef="decision" />
-    <sequenceFlow id="flow2" sourceRef="decision" targetRef="end">
-      <conditionExpression xsi:type="tFormalExpression" language="JavaScript"><![CDATA[
-      this.variables.input <= 50
-      ]]></conditionExpression>
-    </sequenceFlow>
-  </process>
-</definitions>`;
-
-    const engine = new Bpmn.Engine({
-      source: processXml
-    });
-    engine.execute((err) => {
-      expect(err).to.exist();
-      done();
-    });
-  });
-
-  lab.test('should not support multiple diverging flows without conditions', (done) => {
-
-    // if there multiple outgoing sequence flows without conditions, an exception is thrown at deploy time,
-    // even if one of them is the default flow
-
-    const processXml = `
-<?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <process id="theProcess" isExecutable="true">
-    <startEvent id="theStart" />
-    <exclusiveGateway id="decision" />
-    <endEvent id="end1" />
-    <endEvent id="end2" />
-    <sequenceFlow id="flow1" sourceRef="theStart" targetRef="decision" />
-    <sequenceFlow id="flow2" sourceRef="decision" targetRef="end1" />
-    <sequenceFlow id="flow3" sourceRef="decision" targetRef="end2" />
-  </process>
-</definitions>`;
-
-    const engine = new Bpmn.Engine({
-      source: processXml
-    });
-    engine.execute((err) => {
-      expect(err).to.exist();
-      done();
-    });
-
   });
 
   lab.test('should support two diverging flows with conditions, case 10', (done) => {
@@ -302,15 +246,18 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     const engine = new Bpmn.Engine({
       source: processXml
     });
+    engine.once('error', (err, gateway) => {
+      expect(err).to.be.an.error(/no conditional flow/i);
+      expect(gateway).to.include({id: 'decision'});
+      done();
+    });
+
     engine.execute({
       variables: {
         input: 61
       }
-    }, (err, execution) => {
+    }, (err) => {
       if (err) return done(err);
-      execution.once('error', () => {
-        done();
-      });
     });
   });
 });

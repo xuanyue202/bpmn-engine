@@ -57,7 +57,7 @@ lab.experiment('task loop', () => {
         instance.once('end', () => {
           expect(startCount, 'number of start').to.equal(3);
           expect(instance.variables.input).to.equal(14);
-          testHelpers.expectNoLingeringListeners(instance);
+          testHelpers.expectNoLingeringListenersOnDefinition(instance);
           done();
         });
       });
@@ -105,7 +105,7 @@ lab.experiment('task loop', () => {
           instance.once('end', () => {
             expect(startCount, 'number of start').to.equal(7);
             expect(instance.variables.input).to.equal(42);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
@@ -142,7 +142,7 @@ lab.experiment('task loop', () => {
 
           instance.once('end', () => {
             expect(startCount).to.equal(5);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
@@ -182,7 +182,7 @@ lab.experiment('task loop', () => {
 
           instance.once('end', () => {
             expect(startCount).to.equal(7);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
@@ -224,13 +224,13 @@ lab.experiment('task loop', () => {
 
           instance.once('end', () => {
             expect(waitCount).to.equal(4);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
       });
 
-      lab.test('loops sub process until condition is met', (done) => {
+      lab.test('loops sub process until cardinality is met', (done) => {
         const def = `
   <definitions id= "Definitions_1" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="http://bpmn.io/schema/bpmn">
@@ -273,7 +273,7 @@ lab.experiment('task loop', () => {
           instance.once('end', () => {
             expect(startCount).to.equal(5);
             expect(instance.variables.taskInput.recurring.taskInput.recurringChild[0]).to.equal(10);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
@@ -332,7 +332,7 @@ lab.experiment('task loop', () => {
 
           instance.once('end', () => {
             expect(startCount).to.equal(4);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
@@ -389,7 +389,7 @@ lab.experiment('task loop', () => {
           instance.once('end', () => {
             expect(startCount).to.equal(4);
             expect(instance.variables.sum).to.equal(13);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
@@ -446,7 +446,7 @@ lab.experiment('task loop', () => {
 
           instance.once('end', () => {
             expect(startCount).to.equal(2);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });
@@ -495,7 +495,7 @@ lab.experiment('task loop', () => {
 
           instance.once('end', () => {
             expect(startCount).to.equal(10);
-            testHelpers.expectNoLingeringListeners(instance);
+            testHelpers.expectNoLingeringListenersOnDefinition(instance);
             done();
           });
         });

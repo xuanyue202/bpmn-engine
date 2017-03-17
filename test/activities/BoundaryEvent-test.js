@@ -5,33 +5,33 @@ const EventEmitter = require('events').EventEmitter;
 const expect = Code.expect;
 const factory = require('../helpers/factory');
 const Lab = require('lab');
+const testHelpers = require('../helpers/testHelpers');
 
 const lab = exports.lab = Lab.script();
 const Bpmn = require('../..');
-const testHelper = require('../helpers/testHelpers');
 const TimerEvent = require('../../lib/mapper')('bpmn:TimerEventDefinition');
 const ErrorEvent = require('../../lib/mapper')('bpmn:ErrorEventDefinition');
 
 lab.experiment('BoundaryEvent', () => {
-  lab.test('returns TimerEvent type', (done) => {
+  lab.test('supports TimerEvent type', (done) => {
     const engine = new Bpmn.Engine({
       source: factory.resource('boundary-timeout.bpmn')
     });
-    engine.getInstance((err, instance) => {
+    engine.getDefinition((err, definition) => {
       if (err) return done(err);
-      const event = instance.getChildActivityById('boundTimeoutEvent');
+      const event = definition.getChildActivityById('boundTimeoutEvent');
       expect(event).to.be.instanceof(TimerEvent);
       done();
     });
   });
 
-  lab.test('returns ErrorEvent type', (done) => {
+  lab.test('supports ErrorEvent type', (done) => {
     const engine = new Bpmn.Engine({
       source: factory.resource('bound-error.bpmn')
     });
-    engine.getInstance((err, instance) => {
+    engine.getDefinition((err, definition) => {
       if (err) return done(err);
-      const event = instance.getChildActivityById('errorEvent');
+      const event = definition.getChildActivityById('errorEvent');
       expect(event).to.be.instanceof(ErrorEvent);
       done();
     });
@@ -41,9 +41,9 @@ lab.experiment('BoundaryEvent', () => {
     const engine = new Bpmn.Engine({
       source: factory.resource('boundary-timeout.bpmn')
     });
-    engine.getInstance((err, instance) => {
+    engine.getDefinition((err, definition) => {
       if (err) return done(err);
-      const event = instance.getChildActivityById('boundTimeoutEvent');
+      const event = definition.getChildActivityById('boundTimeoutEvent');
       expect(event.isStart).to.be.false();
       expect(event.attachedTo).to.exist();
       done();
@@ -61,9 +61,9 @@ lab.experiment('BoundaryEvent', () => {
 
     engine.execute({
       listener: listener
-    }, (err, instance) => {
+    }, (err, definition) => {
       if (err) return done(err);
-      const timer = instance.getChildActivityById('timerEvent');
+      const timer = definition.getChildActivityById('timerEvent');
 
       let leaveTimerCount = 0;
 
@@ -73,7 +73,7 @@ lab.experiment('BoundaryEvent', () => {
       }
       timer.on('enter', timerListener);
 
-      const error = instance.getChildActivityById('errorEvent');
+      const error = definition.getChildActivityById('errorEvent');
 
       let leaveErrorCount = 0;
 
@@ -83,10 +83,10 @@ lab.experiment('BoundaryEvent', () => {
       }
       error.on('enter', errorListener);
 
-      instance.once('end', () => {
+      definition.once('end', () => {
         timer.removeListener('enter', timerListener);
         error.removeListener('enter', errorListener);
-        testHelper.expectNoLingeringListeners(instance);
+        testHelpers.expectNoLingeringListenersOnDefinition(definition);
         done();
       });
     });
@@ -106,11 +106,11 @@ lab.experiment('BoundaryEvent', () => {
       variables: {
         input: 2
       }
-    }, (err, instance) => {
+    }, (err, definition) => {
       if (err) return done(err);
 
-      instance.once('end', () => {
-        testHelper.expectNoLingeringListeners(instance);
+      definition.once('end', () => {
+        testHelpers.expectNoLingeringListenersOnDefinition(definition);
         done();
       });
     });

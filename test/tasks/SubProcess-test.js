@@ -4,10 +4,11 @@ const Code = require('code');
 const EventEmitter = require('events').EventEmitter;
 const factory = require('../helpers/factory');
 const Lab = require('lab');
-const testHelper = require('../helpers/testHelpers');
+const testHelpers = require('../helpers/testHelpers');
 
 const lab = exports.lab = Lab.script();
 const expect = Code.expect;
+const BaseProcess = require('../../lib/mapper').Process;
 const Bpmn = require('../..');
 
 lab.experiment('SubProcess', () => {
@@ -16,14 +17,11 @@ lab.experiment('SubProcess', () => {
   lab.describe('ctor', () => {
     let parentProcess, subProcess;
 
-    const engine = new Bpmn.Engine({
-      source: processXml
-    });
     lab.before((done) => {
-      engine.getInstance((err, instance) => {
-        if (err) return done(err);
-        parentProcess = instance;
-        subProcess = instance.getChildActivityById('subProcess');
+      testHelpers.getModdleContext(processXml, (cerr, moddleContext) => {
+        if (cerr) return done(cerr);
+        parentProcess = new BaseProcess(moddleContext.elementsById.mainProcess, moddleContext, {});
+        subProcess = parentProcess.getChildActivityById('subProcess');
         done();
       });
     });
@@ -68,13 +66,13 @@ lab.experiment('SubProcess', () => {
         variables: {
           input: 1
         }
-      }, (err, mainInstance) => {
+      }, (err, definition) => {
         if (err) return done(err);
-        mainInstance.once('end', () => {
-          testHelper.expectNoLingeringListeners(mainInstance);
-          testHelper.expectNoLingeringListeners(mainInstance.getChildActivityById('subProcess'));
+        definition.once('end', () => {
+          testHelpers.expectNoLingeringListenersOnDefinition(definition);
+          testHelpers.expectNoLingeringListeners(definition.getChildActivityById('subProcess'));
 
-          const subProcess = mainInstance.getChildActivityById('subProcess');
+          const subProcess = definition.getChildActivityById('subProcess');
           expect(subProcess.variables).to.only.include({
             input: 1,
             subScript: true
@@ -101,15 +99,15 @@ lab.experiment('SubProcess', () => {
         variables: {
           input: 0
         }
-      }, (err, mainInstance) => {
+      }, (err, definition) => {
         if (err) return done(err);
 
-        mainInstance.once('end', () => {
-          expect(mainInstance.getChildActivityById('theEnd').taken, 'theEnd taken').to.be.true();
-          expect(mainInstance.getChildActivityById('subProcess').canceled, 'subProcess canceled').to.be.true();
+        definition.once('end', () => {
+          expect(definition.getChildActivityById('theEnd').taken, 'theEnd taken').to.be.true();
+          expect(definition.getChildActivityById('subProcess').canceled, 'subProcess canceled').to.be.true();
 
-          testHelper.expectNoLingeringListeners(mainInstance);
-          testHelper.expectNoLingeringListeners(mainInstance.getChildActivityById('subProcess'));
+          testHelpers.expectNoLingeringListenersOnDefinition(definition);
+          testHelpers.expectNoLingeringListeners(definition.getChildActivityById('subProcess'));
           done();
         });
       });
@@ -135,15 +133,15 @@ lab.experiment('SubProcess', () => {
         variables: {
           input: 127
         }
-      }, (err, mainInstance) => {
+      }, (err, definition) => {
         if (err) return done(err);
 
-        mainInstance.once('end', () => {
-          expect(mainInstance.getChildActivityById('theEnd').taken, 'theEnd taken').to.be.true();
-          expect(mainInstance.getChildActivityById('subProcess').canceled, 'subProcess canceled').to.be.false();
+        definition.once('end', () => {
+          expect(definition.getChildActivityById('theEnd').taken, 'theEnd taken').to.be.true();
+          expect(definition.getChildActivityById('subProcess').canceled, 'subProcess canceled').to.be.false();
 
-          testHelper.expectNoLingeringListeners(mainInstance);
-          testHelper.expectNoLingeringListeners(mainInstance.getChildActivityById('subProcess'));
+          testHelpers.expectNoLingeringListenersOnDefinition(definition);
+          testHelpers.expectNoLingeringListeners(definition.getChildActivityById('subProcess'));
           done();
         });
       });

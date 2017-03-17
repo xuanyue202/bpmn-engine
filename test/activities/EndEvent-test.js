@@ -25,9 +25,9 @@ lab.experiment('EndEvent', () => {
     const engine = new Bpmn.Engine({
       source: processXml
     });
-    engine.execute((err, execution) => {
+    engine.execute((err, definition) => {
       if (err) return done(err);
-      const event = execution.getChildActivityById('end');
+      const event = definition.getChildActivityById('end');
       expect(event).to.include('inbound');
       expect(event.inbound).to.have.length(1);
       expect(event.inbound).to.have.length(1);
@@ -55,27 +55,27 @@ lab.experiment('EndEvent', () => {
   </process>
 </definitions>`;
 
-    let instance;
+    let definition;
     lab.before((done) => {
       const engine = new Bpmn.Engine({
         source: processXml
       });
-      engine.getInstance((err, execution) => {
+      engine.getDefinition((err, def) => {
         if (err) return done(err);
-        instance = execution;
+        definition = def;
         done();
       });
     });
 
     lab.test('should have inbound sequence flows', (done) => {
-      const element = instance.getChildActivityById('fatal');
+      const element = definition.getChildActivityById('fatal');
       expect(element).to.include('inbound');
       expect(element.inbound).to.have.length(1);
       done();
     });
 
     lab.test('and have property isTermation flag true', (done) => {
-      const element = instance.getChildActivityById('fatal');
+      const element = definition.getChildActivityById('fatal');
       expect(element.terminate).to.be.true();
       done();
     });
@@ -91,13 +91,13 @@ lab.experiment('EndEvent', () => {
 
       engine.execute({
         listener: listener
-      }, (err, execution) => {
+      }, (err, instance) => {
         if (err) return done(err);
 
-        execution.on('end', () => {
-          expect(execution.isEnded).to.equal(true);
-          expect(execution.getChildActivityById('fatal').taken, 'fatal').to.be.true();
-          testHelper.expectNoLingeringListeners(execution);
+        instance.once('end', () => {
+          expect(instance.isEnded).to.equal(true);
+          expect(instance.getChildActivityById('fatal').taken, 'fatal').to.be.true();
+          testHelper.expectNoLingeringListenersOnDefinition(instance);
           done();
         });
       });

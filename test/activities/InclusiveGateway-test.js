@@ -36,10 +36,10 @@ lab.experiment('InclusiveGateway', () => {
     const engine = new Bpmn.Engine({
       source: processXml
     });
-    engine.getInstance((err, execution) => {
+    engine.getDefinition((err, definition) => {
       if (err) return done(err);
 
-      const gateway = execution.getChildActivityById('decision');
+      const gateway = definition.getChildActivityById('decision');
       expect(gateway).to.include('inbound');
       expect(gateway.inbound).to.have.length(1);
       expect(gateway).to.include('outbound');
@@ -206,15 +206,18 @@ lab.experiment('InclusiveGateway', () => {
     const engine = new Bpmn.Engine({
       source: definitionXml
     });
+    engine.once('error', (err, gateway) => {
+      expect(err).to.be.an.error(/no conditional flow/i);
+      expect(gateway).to.include({id: 'decision'});
+      done();
+    });
+
     engine.execute({
       variables: {
         input: 61
       }
-    }, (err, execution) => {
+    }, (err) => {
       if (err) return done(err);
-      execution.once('error', () => {
-        done();
-      });
     });
   });
 });

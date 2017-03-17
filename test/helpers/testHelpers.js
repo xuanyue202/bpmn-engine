@@ -1,18 +1,20 @@
 'use strict';
 
+const BpmnModdle = require('bpmn-moddle');
 const debug = require('debug')('bpmn-engine:test');
 const contextHelper = require('../../lib/context-helper');
 const expect = require('code').expect;
 const transformer = require('../../lib/transformer');
 
 const pub = {};
+const eventNames = ['enter', 'start', 'wait', 'end', 'cancel', 'error', 'leave', 'message'];
 
 pub.expectNoLingeringListeners = (instance) => {
   Object.keys(instance.context.children).forEach((id) => {
     debug(`check listeners of <${id}>`);
     const child = instance.context.children[id];
 
-    checkListeners(child, ['enter', 'start', 'wait', 'end', 'cancel', 'error', 'leave'], '');
+    checkListeners(child, eventNames, '');
 
     // Boundary events
     if (child.boundEvents) {
@@ -31,10 +33,17 @@ pub.expectNoLingeringListeners = (instance) => {
   });
 };
 
-pub.expectNoLingeringListenersOnEngine = (instance) => {
-  instance.processes.forEach((p) => {
-    checkListeners(p, ['enter', 'start', 'wait', 'end', 'cancel', 'error', 'leave'], '');
+pub.expectNoLingeringListenersOnDefinition = (definition) => {
+  definition.processes.forEach((p) => {
+    checkListeners(p, eventNames, ` on process <${p.id}>`);
     pub.expectNoLingeringListeners(p);
+  });
+};
+
+pub.expectNoLingeringListenersOnEngine = (engine) => {
+  engine.definitions.forEach((d) => {
+    checkListeners(d, eventNames, ` on definition <${d.id}>`);
+    pub.expectNoLingeringListenersOnDefinition(d);
   });
 };
 
@@ -58,6 +67,19 @@ pub.getContext = function(processXml, optionsOrCallback, callback) {
     if (err) return callback(err);
     const context = new Context(contextHelper.getExecutableProcessId(moddleContext), moddleContext, {});
     return callback(null, context);
+  });
+};
+
+pub.getModdleContext = function(processXml, optionsOrCallback, callback) {
+  if (!callback) {
+    callback = optionsOrCallback;
+    optionsOrCallback = {};
+  }
+
+  const bpmnModdle = new BpmnModdle(optionsOrCallback);
+
+  bpmnModdle.fromXML(Buffer.isBuffer(processXml) ? processXml.toString() : processXml, (err, definitions, moddleContext) => {
+    return callback(err, moddleContext);
   });
 };
 

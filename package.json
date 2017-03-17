@@ -1,7 +1,7 @@
 {
   "name": "bpmn-engine",
   "description": "BPMN 2.0 execution engine",
-  "version": "2.2.2",
+  "version": "3.1.1",
   "author": "Pål Edman <pal.edman@gmail.com> (https://github.com/paed01)",
   "main": "index.js",
   "repository": {
@@ -20,7 +20,8 @@
   ],
   "scripts": {
     "test": "make test-cov-lcov",
-    "wintest": "node_modules/.bin/lab -v"
+    "wintest": "node_modules/.bin/lab -v",
+    "toc": "node generate-api-toc ./API.md && node generate-api-toc ./docs/Examples.md && node generate-api-toc ./docs/Definition.md"
   },
   "keywords": [
     "workflow",
@@ -31,20 +32,19 @@
     "bpmn 2"
   ],
   "devDependencies": {
-    "camunda-bpmn-moddle": "^0.10.0",
+    "camunda-bpmn-moddle": "^0.10.1",
     "code": "^4.0.0",
-    "coveralls": "^2.11.15",
+    "coveralls": "^2.12.0",
     "lab": "^12.1.0",
     "markdown-toc": "^1.1.0",
-    "nock": "^9.0.2",
-    "request": "~2.79.0"
+    "nock": "^9.0.9",
+    "request": "^2.80.0"
   },
   "dependencies": {
-    "async": "^2.1.4",
+    "async": "^2.1.5",
     "bpmn-moddle": "^0.14.0",
-    "debug": "^2.6.0",
-    "iso8601-duration": "^1.0.6",
-    "joi": "^10.2.0"
+    "debug": "^2.6.1",
+    "iso8601-duration": "^1.0.6"
   },
   "license": "BSD-3-Clause",
   "licenses": [

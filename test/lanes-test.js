@@ -20,10 +20,10 @@ lab.experiment('Lanes', () => {
         camunda: require('camunda-bpmn-moddle/resources/camunda')
       }
     });
-    engine.getInstance((err, mainInstance) => {
+    engine.getDefinitions((err, definitions) => {
       if (err) return done(err);
 
-      expect(mainInstance.context.messageFlows.length).to.equal(1);
+      expect(definitions[0].getProcesses()[0].context.messageFlows.length).to.equal(1);
 
       done();
     });
@@ -71,22 +71,16 @@ lab.experiment('Lanes', () => {
     });
 
     engine.once('end', () => {
-      const participant = engine.processes.find((p) => p.id === 'participantProcess');
+      const participant = engine.definitions[0].processes.find((p) => p.id === 'participantProcess');
       expect(participant.variables).to.include({
         input: 0,
         message: 'Done! Aswell!',
         arbval: '10'
       });
 
-      const mainProcess = engine.processes.find((p) => p.id === 'mainProcess');
+      const mainProcess = engine.definitions[0].processes.find((p) => p.id === 'mainProcess');
       expect(mainProcess.variables).to.include({
         message: 'I\'m done'
-      });
-
-      expect(mainProcess.variables.taskInput).to.include({
-        intermediate: {
-          message: 'Done! Aswell!'
-        }
       });
 
       done();

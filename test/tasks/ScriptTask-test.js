@@ -10,6 +10,7 @@ const expect = Code.expect;
 
 const Bpmn = require('../..');
 const mapper = require('../../lib/mapper');
+const BaseProcess = mapper.Process;
 
 lab.experiment('ScriptTask', () => {
   lab.describe('ctor', () => {
@@ -59,16 +60,14 @@ lab.experiment('ScriptTask', () => {
     </process>
   </definitions>`;
 
-      const engine = new Bpmn.Engine({
-        source: processXml
-      });
-      engine.getInstance((err, execution) => {
-        if (err) return done(err);
-        const activity = execution.getChildActivityById('scriptTask');
-        expect(activity).to.include('inbound');
-        expect(activity.inbound).to.have.length(1);
-        expect(activity).to.include('outbound');
-        expect(activity.outbound).to.have.length(1);
+      testHelpers.getModdleContext(processXml, (cerr, moddleContext) => {
+        if (cerr) return done(cerr);
+        const process = new BaseProcess(moddleContext.elementsById.theProcess, moddleContext, {});
+        const task = process.getChildActivityById('scriptTask');
+        expect(task).to.include('inbound');
+        expect(task.inbound).to.have.length(1);
+        expect(task).to.include('outbound');
+        expect(task.outbound).to.have.length(1);
         done();
       });
     });
@@ -89,12 +88,10 @@ lab.experiment('ScriptTask', () => {
     </process>
   </definitions>`;
 
-      const engine = new Bpmn.Engine({
-        source: alternativeProcessXml
-      });
-      engine.getInstance((err, execution) => {
-        if (err) return done(err);
-        const task = execution.getChildActivityById('scriptTask');
+      testHelpers.getModdleContext(alternativeProcessXml, (cerr, moddleContext) => {
+        if (cerr) return done(cerr);
+        const process = new BaseProcess(moddleContext.elementsById.theProcess, moddleContext, {});
+        const task = process.getChildActivityById('scriptTask');
         expect(task.isEnd).to.be.true();
         done();
       });
@@ -134,7 +131,7 @@ lab.experiment('ScriptTask', () => {
 
         instance.once('end', () => {
           expect(instance.variables.input, 'input variable').to.equal(2);
-          testHelpers.expectNoLingeringListeners(instance);
+          testHelpers.expectNoLingeringListenersOnDefinition(instance);
           done();
         });
       });
@@ -159,20 +156,19 @@ lab.experiment('ScriptTask', () => {
   </process>
 </definitions>`;
 
-      const engine = new Bpmn.Engine({
-        source: processXml
-      });
-      engine.getInstance((err, execution) => {
-        if (err) return done(err);
-        const activity = execution.getChildActivityById('scriptTask');
+      testHelpers.getModdleContext(processXml, (cerr, moddleContext) => {
+        if (cerr) return done(cerr);
+        const process = new BaseProcess(moddleContext.elementsById.theProcess, moddleContext, {});
+        const task = process.getChildActivityById('scriptTask');
 
-        activity.once('error', (e) => {
+        task.once('error', (e, tsk) => {
           expect(e).to.exist();
           expect(e).to.be.an.error(Error, 'Inside');
+          expect(tsk).to.include({id: 'scriptTask'});
           done();
         });
 
-        activity.run();
+        task.run();
       });
     });
   });
